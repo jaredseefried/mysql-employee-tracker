@@ -16,6 +16,8 @@ connection.connect(function (error) {
     addViewUpdate();
 });
 
+
+
 class Department {
     constructor(name) {
         this.name = name
@@ -93,7 +95,17 @@ function viewType() {
             name: "viewType",
             choices: ["Department", "Role", "Employee"]
         }
-    ])
+    ]).then((selection) => {
+        switch (selection.viewType){
+            case "Department":
+                viewDepartment();
+            case "Role":
+                viewRole();
+                break;
+            case "Employee":
+                viewEmployee()
+        }
+    })
 }
 
 function updateType() {
@@ -160,4 +172,25 @@ function addEmployee() {
             name: "employeeManagerID"
         }
     ])
+}
+
+function viewDepartment (){
+    connection.query("SELECT * FROM department", (error, response) => {
+        if (error) throw error;
+        console.table(response)
+    })
+}
+
+function viewRole (){
+    connection.query("SELECT * FROM role", (error, response) => {
+        if (error) throw error;
+        console.table(response)
+    })
+}
+
+function viewEmployee (){
+    connection.query("SELECT * FROM employee", (error, response) => {
+        if (error) throw error;
+        console.table(response)
+    })
 }
