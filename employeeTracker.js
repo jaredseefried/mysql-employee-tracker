@@ -25,3 +25,26 @@ function afterConnection() {
         // connection.end();
     });
 }
+
+class Department {
+    constructor(name){
+        this.name = name
+    }
+}
+
+class Role {
+    constructor (title, salary, departmentID){
+        this.title = title
+        this.salary = salary
+        this.departmentID = departmentID
+    }
+}
+
+class Employee {
+    constructor(firstName, lastName, roleID, managerID){
+        this.firstName = firstName
+        this.lastName = lastName
+        this.roleID = roleID
+        this.managerID = managerID
+    }
+}
