@@ -256,31 +256,43 @@ function viewEmployee() {
 }
 
 function updateDepartment() {
-    //! I want to bring in all options as choices const depts
-    inquirer.prompt([
-        {
-            type: "input",
-            message: "Which department would you like to update?",
-            name: "updateDeptName",
-            // choices: []
-        },
-        {
-            type: "input",
-            message: "What would you like to rename this department to?",
-            name: "newDeptName",
+    connection.query("SELECT * FROM department", (error, response) => {
+        if (error) throw error;
+        // console.log(response);
+        const allDepts = []
+        for (let i = 0; i < response.length; i++) {
+            allDepts.push(response[i].name)
         }
-    ]).then((response) => {
-        connection.query(
-            "UPDATE department SET name = '"
-            + response.newDeptName +
-            "' WHERE name = '"
-            + response.updateDeptName +
-            "'", (error, response) => {
-                if (error) throw error;
-                console.table(response)
+        inquirer.prompt([
+            {
+                type: "list",
+                message: "Which department would you like to update?",
+                name: "updateDeptName",
+                choices: allDepts
+            },
+            {
+                type: "input",
+                message: "What would you like to rename this department to?",
+                name: "newDeptName",
             }
-        )
-        addViewUpdate();
+        ]).then((response) => {
+            const newDeptName = response.newDeptName
+            const oldDeptName = response.updateDeptName
+            connection.query(
+                "UPDATE department SET name = '"
+                + response.newDeptName +
+                "' WHERE name = '"
+                + response.updateDeptName +
+                "'", (error, response) => {
+                    if (error) throw error;
+                    console.log("=========");
+                    console.log("Updated " + oldDeptName + " to " + newDeptName);
+                    console.log("=========");
+                    addViewUpdate();
+                }
+            )
+
+        })
     })
 }
 
