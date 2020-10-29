@@ -46,7 +46,7 @@ function addViewUpdate() {
             type: "list",
             message: "Would you like to Add, View or Update a record?",
             name: "addViewUpdate",
-            choices: ["Add", "View", "Update", "Done"]
+            choices: ["Add", "View", "Update", "Delete", "Done"]
         }
 
     ]).then(selection => {
@@ -60,6 +60,9 @@ function addViewUpdate() {
             case "Update":
                 updateType();
                 break;
+            case "Delete":
+                deleteType();
+                break
             case "Done":
                 connection.end()
         }
@@ -74,8 +77,8 @@ function addType() {
             name: "addType",
             choices: ["Department", "Role", "Employee"]
         }
-    ]).then (selection => {
-        switch (selection.addType){
+    ]).then(selection => {
+        switch (selection.addType) {
             case "Department":
                 addDepartment()
                 break;
@@ -97,7 +100,7 @@ function viewType() {
             choices: ["Department", "Role", "Employee"]
         }
     ]).then((selection) => {
-        switch (selection.viewType){
+        switch (selection.viewType) {
             case "Department":
                 viewDepartment();
                 break;
@@ -106,26 +109,7 @@ function viewType() {
                 break;
             case "Employee":
                 viewEmployee()
-                
-        }
-    })
-}
 
-function updateOrDelete(){
-    inquirer.prompt([
-        {
-            type: "list",
-            message: "Would you like to Update or Delete a Department, Role or Employee?",
-            name: "updateOrDelete",
-            choices: ["Update", "Delete"]
-        }
-    ]).then((response)=>{
-        switch (response.updateOrDelete){
-            case "Update":
-                updateType();
-                break
-            case "Delete":
-                deleteType();
         }
     })
 }
@@ -138,8 +122,8 @@ function updateType() {
             name: "updateType",
             choices: ["Department", "Role", "Employee"]
         }
-    ]).then ((selection) =>{
-        switch (selection.updateType){
+    ]).then((selection) => {
+        switch (selection.updateType) {
             case "Department":
                 updateDepartment();
                 break
@@ -160,12 +144,12 @@ function addDepartment() {
             message: "What is the name of the Department?",
             name: "deptName",
         }
-    ]).then ((response) => {
-        const newDept = new Department (response.deptName);
+    ]).then((response) => {
+        const newDept = new Department(response.deptName);
         console.log(newDept);
         connection.query(
             "INSERT INTO department (name) VALUE ('"
-            + response.deptName + 
+            + response.deptName +
             "')"
         )
         console.table(response);
@@ -190,10 +174,10 @@ function addRole() {
             message: "What is the department ID associated this role?",
             name: "roleDeptID",
         }
-    ]).then((response) =>{
+    ]).then((response) => {
         connection.query(
-            "INSERT INTO role(title, salary, department_id) VALUES ('" 
-            + response.roleTitle + 
+            "INSERT INTO role(title, salary, department_id) VALUES ('"
+            + response.roleTitle +
             "',"
             + response.roleSalary +
             ","
@@ -227,10 +211,10 @@ function addEmployee() {
             message: "What is the employees manager ID?",
             name: "employeeManagerID"
         }
-    ]).then((response) =>{
+    ]).then((response) => {
         connection.query(
-            "INSERT INTO employee (first_name, last_name, role_id, manager_id)VALUES ('" 
-            + response.employeeFirst + 
+            "INSERT INTO employee (first_name, last_name, role_id, manager_id)VALUES ('"
+            + response.employeeFirst +
             "','"
             + response.employeeLast +
             "',"
@@ -240,34 +224,38 @@ function addEmployee() {
             ")"
         )
         console.table(response);
+
         addViewUpdate();
     })
 }
 
-function viewDepartment (){
+function viewDepartment() {
     connection.query("SELECT * FROM department", (error, response) => {
         if (error) throw error;
         console.table(response)
     })
+    addViewUpdate();
 }
 
-function viewRole (){
+function viewRole() {
     connection.query("SELECT * FROM role", (error, response) => {
         if (error) throw error;
         console.table(response)
     })
+    addViewUpdate();
 }
 
-function viewEmployee (){
+function viewEmployee() {
     connection.query("SELECT * FROM employee", (error, response) => {
         if (error) throw error;
         console.table(response)
     })
+
+
+    addViewUpdate();
 }
 
-
-
-function updateDepartment(){
+function updateDepartment() {
     //! I want to bring in all options as choices const depts
     inquirer.prompt([
         {
@@ -281,30 +269,31 @@ function updateDepartment(){
             message: "What would you like to rename this department to?",
             name: "newDeptName",
         }
-    ]).then ((response) => {
+    ]).then((response) => {
         connection.query(
             "UPDATE department SET name = '"
             + response.newDeptName +
             "' WHERE name = '"
-            +response.updateDeptName+
+            + response.updateDeptName +
             "'", (error, response) => {
                 if (error) throw error;
                 console.table(response)
             }
         )
+        addViewUpdate();
     })
 }
 
-function updateRole(){
+function updateRole() {
     inquirer.prompt([
         {
             type: "list",
             message: "Would you like to update the Role Title, Salary or Department ID?",
             name: "updateRoleValue",
-            choices: ["Title", "Salary, Department ID"]
+            choices: ["Title", "Salary", "Department ID"]
         }
-    ]).then((response)=>{
-        switch (response.updateRoleValue){
+    ]).then((response) => {
+        switch (response.updateRoleValue) {
             case "Title":
                 updateRoleTitle()
                 break
@@ -317,7 +306,7 @@ function updateRole(){
     })
 }
 
-function updateRoleTitle (){
+function updateRoleTitle() {
     inquirer.prompt([
         {
             type: "input",
@@ -329,47 +318,48 @@ function updateRoleTitle (){
             message: "What would you like to rename this Role to?",
             name: "newRoleTitle",
         }
-    ]).then((response)=>{
+    ]).then((response) => {
         connection.query(
             "UPDATE employeedb.role SET title = '"
             + response.newRoleTitle +
             "' WHERE title = '"
-            +response.updateRoleTitle+
+            + response.updateRoleTitle +
             "'", (error, response) => {
                 if (error) throw error;
                 console.table(response)
             }
         )
+        addViewUpdate();
     })
 }
 
-function updateRoleSalary(){
+function updateRoleSalary() {
     inquirer.prompt([
         {
             type: "input",
-            message: "Which Role Salary would you like to update?",
-            name: "updateRoleSalary",
+            message: "Which Role ID would you like to update?",
+            name: "updateRoleSalaryID",
         },
         {
             type: "input",
             message: "How much is the new Salary for this role?",
             name: "newRoleSalary",
         }
-    ]).then((response)=>{
+    ]).then((response) => {
         connection.query(
-            "UPDATE employeedb.role SET salary = '"
+            "UPDATE employeedb.role SET salary = "
             + response.newRoleSalary +
-            "' WHERE title = '"
-            +response.updateRoleSalary+
-            "'", (error, response) => {
+            " WHERE id = "
+            + response.updateRoleSalaryID, (error, response) => {
                 if (error) throw error;
                 console.table(response)
             }
         )
+        addViewUpdate();
     })
 }
 
-function updateRoleDeptID(){
+function updateRoleDeptID() {
     inquirer.prompt([
         {
             type: "input",
@@ -378,37 +368,38 @@ function updateRoleDeptID(){
         },
         {
             type: "input",
-            message: "What is the new Deptarment ID for this role?",
+            message: "What is the new Department ID for this role?",
             name: "newRoleDeptID",
         }
-    ]).then((response)=>{
+    ]).then((response) => {
         connection.query(
-            "UPDATE employeedb.role SET department_id = '"
-            + response.newRoleSalary +
-            "' WHERE title = '"
-            +response.updateRoleDeptID+
+            "UPDATE employeedb.role SET department_id = "
+            + response.newRoleDeptID +
+            " WHERE department_id = '"
+            + response.updateRoleDeptID +
             "'", (error, response) => {
                 if (error) throw error;
                 console.table(response)
             }
         )
+        addViewUpdate();
     })
 }
 
-function updateEmployee(){
+function updateEmployee() {
     inquirer.prompt([
         {
             type: "list",
             message: "Would you like to update the Employee First Name, Last Name, Role ID or Manager ID?",
             name: "updateEmpValue",
-            choices: ["First Name", "Last Name, Role ID", "Manager ID"]
+            choices: ["First Name", "Last Name", "Role ID", "Manager ID"]
         }
-    ]).then((response)=>{
-        switch (response.updateEmpValue){
+    ]).then((response) => {
+        switch (response.updateEmpValue) {
             case "First Name":
                 updateFN()
                 break
-            case "Salary":
+            case "Last Name":
                 updateLN();
                 break
             case "Role ID":
@@ -420,7 +411,7 @@ function updateEmployee(){
     })
 }
 
-function updateFN(){
+function updateFN() {
     inquirer.prompt([
         {
             type: "input",
@@ -432,20 +423,22 @@ function updateFN(){
             message: "What is the updated first name for the employee?",
             name: "newRoleEmFN",
         }
-    ]).then((response)=>{
+    ]).then((response) => {
         connection.query(
             "UPDATE employeedb.employee SET first_name = '"
             + response.newRoleEmFN +
             "' WHERE id = '"
-            +response.updateEmID+
+            + response.updateEmID +
             "'", (error, response) => {
                 if (error) throw error;
                 console.table(response)
             }
         )
+        addViewUpdate();
     })
 }
-function updateLN(){
+
+function updateLN() {
     inquirer.prompt([
         {
             type: "input",
@@ -457,21 +450,21 @@ function updateLN(){
             message: "What is the updated last name for the employee?",
             name: "newRoleEmLN",
         }
-    ]).then((response)=>{
+    ]).then((response) => {
         connection.query(
             "UPDATE employeedb.employee SET last_name = '"
             + response.newRoleEmLN +
-            "' WHERE id = '"
-            +response.updateEmID+
-            "'", (error, response) => {
+            "' WHERE id = "
+            + response.updateEmID, (error, response) => {
                 if (error) throw error;
                 console.table(response)
             }
         )
+        addViewUpdate();
     })
 }
 
-function updateRoleID(){
+function updateRoleID() {
     inquirer.prompt([
         {
             type: "input",
@@ -483,21 +476,22 @@ function updateRoleID(){
             message: "What is the updated Role ID for the employee?",
             name: "newRoleEmRoleID",
         }
-    ]).then((response)=>{
+    ]).then((response) => {
         connection.query(
             "UPDATE employeedb.employee SET last_name = '"
             + response.newRoleEmRoleID +
             "' WHERE id = '"
-            +response.updateEmID+
+            + response.updateEmID +
             "'", (error, response) => {
                 if (error) throw error;
                 console.table(response)
             }
         )
+        addViewUpdate();
     })
 }
 
-function updateManagerID(){
+function updateManagerID() {
     inquirer.prompt([
         {
             type: "input",
@@ -509,21 +503,23 @@ function updateManagerID(){
             message: "What is the updated Manager ID for the employee?",
             name: "newRoleEmMgID",
         }
-    ]).then((response)=>{
+    ]).then((response) => {
         connection.query(
             "UPDATE employeedb.employee SET last_name = '"
             + response.newRoleEmMgID +
             "' WHERE id = '"
-            +response.updateEmID+
+            + response.updateEmID +
             "'", (error, response) => {
                 if (error) throw error;
                 console.table(response)
             }
+
         )
+        addViewUpdate();
     })
 }
 
-function deleteType(){
+function deleteType() {
     inquirer.prompt([
         {
             type: "list",
@@ -531,8 +527,8 @@ function deleteType(){
             name: "deleteType",
             choices: ["Employee", "Role", "Department"]
         },
-    ]).then ((response) => {
-        switch (response.deleteType){
+    ]).then((response) => {
+        switch (response.deleteType) {
             case "Employee":
                 deleteEmployee();
                 break
@@ -545,48 +541,55 @@ function deleteType(){
     })
 }
 
-function deleteEmployee(){
+function deleteEmployee() {
     inquirer.prompt([
         {
             type: "input",
             message: "Which employee ID would you like to delete?",
             name: "deleteEmID",
         }
-    ]).then((response)=>{
+    ]).then((response) => {
         connection.query(
-            "DELETE FROM employeeDB.employee WHERE "
-            + response.deleteEmID 
+            "DELETE FROM employeeDB.employee WHERE id = " + response.deleteEmID, (error, response) => {
+                console.table(response)
+            }
         )
+        addViewUpdate();
     })
+
 }
 
-function deleteRole (){
+function deleteRole() {
     inquirer.prompt([
         {
             type: "input",
             message: "Which Role ID would you like to delete?",
             name: "roleID",
         }
-    ]).then((response)=>{
+    ]).then((response) => {
         connection.query(
-            "DELETE FROM employeeDB.role WHERE "
-            + response.roleID 
+            "DELETE FROM employeedb.role WHERE id = " + response.roleID, (error, response) => {
+                console.table(response)
+            }
         )
+        addViewUpdate();
     })
 }
 
-function deleteDepartment (){
+function deleteDepartment() {
     inquirer.prompt([
         {
             type: "input",
             message: "Which Department ID would you like to delete?",
             name: "deptID",
         }
-    ]).then((response)=>{
+    ]).then((response) => {
         connection.query(
-            "DELETE FROM employeeDB.role WHERE "
-            + response.deptID 
+            "DELETE FROM employeeDB.department WHERE id = " + response.deptID, (error, response) => {
+                console.table(response)
+            }
         )
+        addViewUpdate();
     })
 }
 
