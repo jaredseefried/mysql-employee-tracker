@@ -11,7 +11,8 @@ CREATE TABLE role (
     id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(30) NOT NULL,
     salary INT(10) NOT NULL,
-    department_id INT
+    department_id INT NOT NULL,
+    FOREIGN KEY (department_id) REFERENCES department(id)
 );
 
 CREATE TABLE employee (
@@ -19,7 +20,8 @@ CREATE TABLE employee (
     first_name VARCHAR(30) NOT NULL,
     last_name VARCHAR(30) NOT NULL,
     role_id INT NOT NULL,
-    manager_id INT
+    manager_id INT,
+    FOREIGN KEY (role_id) REFERENCES role(id)
 );
 
 INSERT INTO department(name)
@@ -39,18 +41,18 @@ VALUES
 
 INSERT INTO role(title, salary, department_id)
 VALUES  
-    ("Executive", 200, 1),
-    ("Manager", 100, 1),
-    ("Project Manager", 75, 7),
-    ("Business Analyst", 80, 9),
-    ("Sales Representative", 50, 11),
-    ("Customer Service Represenative", 40, 10),
-    ("Administrative Assistant", 100, 1),
-    ("Marketing Analyst", 60, 2),
-    ("Developer", 100, 3),
-    ("Product Manager", 90, 12),
-    ("Human Resources Manager", 75, 8),
-    ("Financial Analyst", 50, 5);
+    ("Executive", 200000, 1),
+    ("Manager", 100000, 1),
+    ("Project Manager", 75000, 7),
+    ("Business Analyst", 80000, 9),
+    ("Sales Representative", 50000, 11),
+    ("Customer Service Represenative", 40000, 10),
+    ("Administrative Assistant", 100000, 1),
+    ("Marketing Analyst", 60000, 2),
+    ("Developer", 100000, 3),
+    ("Product Manager", 90000, 12),
+    ("Human Resources Manager", 75000, 8),
+    ("Financial Analyst", 50000, 5);
 
 INSERT INTO employee (first_name, last_name, role_id, manager_id)
 VALUES  
@@ -58,4 +60,7 @@ VALUES
     ("Jared", "Seefried", 4, 1),
     ("Will", "Ferrell", 1, 1 ),
     ("Nora", "BoBora", 5, 3),
-    ("Taylor", "Analyst", 12, 2);
+    ("Taylor", "Analyst", 12, 2),
+    ("Claudia", "Flores", 2, 4),
+    ("Joe", "Schmoe", 3, 5);
+    

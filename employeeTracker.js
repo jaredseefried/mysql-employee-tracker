@@ -2,7 +2,6 @@
 const mysql = require("mysql");
 const inquirer = require("inquirer");
 
-
 var connection = mysql.createConnection({
     host: "localhost",
     port: 3306, // ALWAYS 3306
@@ -17,36 +16,13 @@ connection.connect(function (error) {
     addViewUpdate();
 });
 
-class Department {
-    constructor(name) {
-        this.name = name
-    }
-}
-
-class Role {
-    constructor(title, salary, departmentID) {
-        this.title = title
-        this.salary = salary
-        this.departmentID = departmentID
-    }
-}
-
-class Employee {
-    constructor(firstName, lastName, roleID, managerID) {
-        this.firstName = firstName
-        this.lastName = lastName
-        this.roleID = roleID
-        this.managerID = managerID
-    }
-}
-
 function addViewUpdate() {
     inquirer.prompt([
         {
             type: "list",
             message: "Would you like to Add, View or Update a record?",
             name: "addViewUpdate",
-            choices: ["Add", "View", "Update", "Delete", "Done"]
+            choices: ["Add", "View", "Update", "Done"]
         }
 
     ]).then(selection => {
@@ -60,9 +36,9 @@ function addViewUpdate() {
             case "Update":
                 updateType();
                 break;
-            case "Delete":
-                deleteType();
-                break
+            // case "Delete": //! Working on the Delete functionality
+            //     deleteType();
+            //     break
             case "Done":
                 connection.end()
         }
@@ -137,6 +113,30 @@ function updateType() {
     })
 }
 
+function viewDepartment() {
+    connection.query("SELECT * FROM department", (error, response) => {
+        if (error) throw error;
+        console.table(response)
+    })
+    addViewUpdate();
+}
+
+function viewRole() {
+    connection.query("SELECT * FROM role", (error, response) => {
+        if (error) throw error;
+        console.table(response)
+    })
+    addViewUpdate();
+}
+
+function viewEmployee() {
+    connection.query("SELECT * FROM employee", (error, response) => {
+        if (error) throw error;
+        console.table(response)
+    })
+    addViewUpdate();
+}
+
 function addDepartment() {
     inquirer.prompt([
         {
@@ -145,13 +145,7 @@ function addDepartment() {
             name: "deptName",
         }
     ]).then((response) => {
-        const newDept = new Department(response.deptName);
-        console.log(newDept);
-        connection.query(
-            "INSERT INTO department (name) VALUE ('"
-            + response.deptName +
-            "')"
-        )
+        connection.query("INSERT INTO department (name) VALUE ('"+ response.deptName +"')")
         console.table(response);
         addViewUpdate();
     })
@@ -229,31 +223,6 @@ function addEmployee() {
     })
 }
 
-function viewDepartment() {
-    connection.query("SELECT * FROM department", (error, response) => {
-        if (error) throw error;
-        console.table(response)
-    })
-    addViewUpdate();
-}
-
-function viewRole() {
-    connection.query("SELECT * FROM role", (error, response) => {
-        if (error) throw error;
-        console.table(response)
-    })
-    addViewUpdate();
-}
-
-function viewEmployee() {
-    connection.query("SELECT * FROM employee", (error, response) => {
-        if (error) throw error;
-        console.table(response)
-    })
-
-
-    addViewUpdate();
-}
 
 function updateDepartment() {
     connection.query("SELECT * FROM department", (error, response) => {
@@ -319,82 +288,121 @@ function updateRole() {
 }
 
 function updateRoleTitle() {
-    inquirer.prompt([
-        {
-            type: "input",
-            message: "Which Role would you like to update?",
-            name: "updateRoleTitle",
-        },
-        {
-            type: "input",
-            message: "What would you like to rename this Role to?",
-            name: "newRoleTitle",
+    connection.query("SELECT title FROM role", (error, response) => {
+        if (error) throw error
+        const allRoleTitles = []
+        for (let i = 0; i < response.length; i++) {
+            allRoleTitles.push(response[i].title)
         }
-    ]).then((response) => {
-        connection.query(
-            "UPDATE employeedb.role SET title = '"
-            + response.newRoleTitle +
-            "' WHERE title = '"
-            + response.updateRoleTitle +
-            "'", (error, response) => {
-                if (error) throw error;
-                console.table(response)
+        inquirer.prompt([
+            {
+                type: "list",
+                message: "Which Role would you like to update?",
+                name: "updateRoleTitle",
+                choices: allRoleTitles
+            },
+            {
+                type: "input",
+                message: "What would you like to rename this Role to?",
+                name: "newRoleTitle",
             }
-        )
-        addViewUpdate();
+        ]).then((response) => {
+            const newTitle = response.newRoleTitle
+            const oldTitle = response.updateRoleTitle
+            connection.query(
+                "UPDATE employeedb.role SET title = '"
+                + response.newRoleTitle +
+                "' WHERE title = '"
+                + response.updateRoleTitle +
+                "'", (error, response) => {
+                    if (error) throw error;
+                    console.log("=========");
+                    console.log("Updated " + oldTitle + " to " + newTitle);
+                    console.log("=========");
+                    addViewUpdate();
+                }
+            )
+        })
     })
 }
 
 function updateRoleSalary() {
-    inquirer.prompt([
-        {
-            type: "input",
-            message: "Which Role ID would you like to update?",
-            name: "updateRoleSalaryID",
-        },
-        {
-            type: "input",
-            message: "How much is the new Salary for this role?",
-            name: "newRoleSalary",
+    connection.query("SELECT * FROM role", (error, response) => {
+        if (error) throw error
+        const allSalaries = []
+        for (let i = 0; i < response.length; i++) {
+            allSalaries.push(response[i].title)
         }
-    ]).then((response) => {
-        connection.query(
-            "UPDATE employeedb.role SET salary = "
-            + response.newRoleSalary +
-            " WHERE id = "
-            + response.updateRoleSalaryID, (error, response) => {
-                if (error) throw error;
-                console.table(response)
+        inquirer.prompt([
+            {
+                type: "list",
+                message: "Which Role would you like to update?",
+                name: "updateRoleSalary",
+                choices: allSalaries
+            },
+            {
+                type: "input",
+                message: "How much is the new Salary for this role?",
+                name: "newRoleSalary",
             }
-        )
-        addViewUpdate();
+        ]).then((response) => {
+            const newSalary = response.newRoleSalary
+            const oldSalary = response.updateRoleSalary
+            connection.query(
+                "UPDATE employeedb.role SET salary = "
+                + response.newRoleSalary +
+                " WHERE title = '"
+                + response.updateRoleSalary
+                + "'", (error, response) => {
+                    if (error) throw error;
+                    console.log("=========");
+                    console.log("Updated the salary for " + oldSalary + " to " + newSalary);
+                    console.log("=========");
+                    addViewUpdate();
+                }
+            )
+
+        })
     })
 }
 
 function updateRoleDeptID() {
-    inquirer.prompt([
-        {
-            type: "input",
-            message: "Which Role Department ID would you like to update?",
-            name: "updateRoleDeptID",
-        },
-        {
-            type: "input",
-            message: "What is the new Department ID for this role?",
-            name: "newRoleDeptID",
+    connection.query("SELECT * FROM role", (error, response) => {
+        if (error) throw error
+        const allDeptIDs = []
+        for (let i = 0; i < response.length; i++) {
+            allDeptIDs.push(response[i].title)
         }
-    ]).then((response) => {
-        connection.query(
-            "UPDATE employeedb.role SET department_id = "
-            + response.newRoleDeptID +
-            " WHERE department_id = '"
-            + response.updateRoleDeptID +
-            "'", (error, response) => {
-                if (error) throw error;
-                console.table(response)
+        inquirer.prompt([
+            {
+                type: "list",
+                message: "Which Role would you like to update the Department ID?",
+                name: "updateRoleDeptID",
+                choices: allDeptIDs
+            },
+            {
+                type: "input",
+                message: "What is the new Department ID for this role?",
+                name: "newRoleDeptID",
             }
-        )
-        addViewUpdate();
+        ]).then((response) => {
+            const oldRoleDept = response.updateRoleDeptID
+            const newID = response.newRoleDeptID
+            connection.query(
+                "UPDATE employeedb.role SET department_id = "
+                + response.newRoleDeptID +
+                " WHERE title = '"
+                + response.updateRoleDeptID +
+                "'", (error, response) => {
+                    if (error) throw error;
+                    console.log("=========");
+                    console.log("Updated the Department ID for " + oldRoleDept + " to " + newID);
+                    console.log("=========");
+                    addViewUpdate();
+                }
+            )
+
+        })
     })
 }
 
@@ -424,110 +432,174 @@ function updateEmployee() {
 }
 
 function updateFN() {
-    inquirer.prompt([
-        {
-            type: "input",
-            message: "Which employee ID would you like to update?",
-            name: "updateEmID",
-        },
-        {
-            type: "input",
-            message: "What is the updated first name for the employee?",
-            name: "newRoleEmFN",
+    connection.query("SELECT * FROM employee", (error, response) => {
+        if (error) throw error
+        const allIds = []
+        for (let i = 0; i < response.length; i++) {
+            allIds.push(response[i].id)
         }
-    ]).then((response) => {
-        connection.query(
-            "UPDATE employeedb.employee SET first_name = '"
-            + response.newRoleEmFN +
-            "' WHERE id = '"
-            + response.updateEmID +
-            "'", (error, response) => {
-                if (error) throw error;
-                console.table(response)
+        inquirer.prompt([
+            {
+                type: "list",
+                message: "Which employee ID would you like to update?",
+                name: "updateEmID",
+                choices: allIds
+            },
+            {
+                type: "input",
+                message: "What is the updated first name for the employee?",
+                name: "newRoleEmFN",
             }
-        )
-        addViewUpdate();
+        ]).then((response) => {
+            const oldID = response.updateEmID
+            const newFirstName = response.newRoleEmFN
+            connection.query(
+                "UPDATE employeedb.employee SET first_name = '"
+                + response.newRoleEmFN +
+                "' WHERE id = "
+                + response.updateEmID, (error, response) => {
+                    if (error) throw error;
+                    console.log("\n");
+                    connection.query("select * from employee", (error, response) => {
+                        if (error) throw error
+                        console.table(response)
+                        console.log("=========");
+                        console.log("Updated the First Name of Employee ID " + oldID + " to " + newFirstName);
+                        console.log("=========");
+                        addViewUpdate();
+                    })
+                }
+            )
+        })
     })
 }
 
 function updateLN() {
-    inquirer.prompt([
-        {
-            type: "input",
-            message: "Which employee ID would you like to update?",
-            name: "updateEmID",
-        },
-        {
-            type: "input",
-            message: "What is the updated last name for the employee?",
-            name: "newRoleEmLN",
+    connection.query("SELECT * FROM employee", (error, response) => {
+        if (error) throw error
+        const allIds = []
+        for (let i = 0; i < response.length; i++) {
+            allIds.push(response[i].id)
         }
-    ]).then((response) => {
-        connection.query(
-            "UPDATE employeedb.employee SET last_name = '"
-            + response.newRoleEmLN +
-            "' WHERE id = "
-            + response.updateEmID, (error, response) => {
-                if (error) throw error;
-                console.table(response)
+        inquirer.prompt([
+            {
+                type: "list",
+                message: "Which employee ID would you like to update?",
+                name: "updateEmID",
+                choices: allIds
+            },
+            {
+                type: "input",
+                message: "What is the updated last name for the employee?",
+                name: "newRoleEmLN",
             }
-        )
-        addViewUpdate();
+        ]).then((response) => {
+            const empID = response.updateEmID
+            const newLastName = response.newRoleEmLN
+            connection.query(
+                "UPDATE employeedb.employee SET last_name = '"
+                + response.newRoleEmLN +
+                "' WHERE id = "
+                + response.updateEmID, (error, response) => {
+                    if (error) throw error;
+                    console.log("\n");
+                    connection.query("select * from employee", (error, response) => {
+                        if (error) throw error
+                        console.table(response)
+                        console.log("=========");
+                        console.log("Updated the Last Name of Employee ID " + empID + " to " + newLastName);
+                        console.log("=========");
+                        addViewUpdate();
+                    })
+                }
+            )
+        })
     })
 }
 
 function updateRoleID() {
-    inquirer.prompt([
-        {
-            type: "input",
-            message: "Which employee ID would you like to update?",
-            name: "updateEmID",
-        },
-        {
-            type: "input",
-            message: "What is the updated Role ID for the employee?",
-            name: "newRoleEmRoleID",
+    connection.query("SELECT * FROM employee", (error, response) => {
+        if (error) throw error
+        const allIds = []
+        for (let i = 0; i < response.length; i++) {
+            allIds.push(response[i].id)
         }
-    ]).then((response) => {
-        connection.query(
-            "UPDATE employeedb.employee SET last_name = '"
-            + response.newRoleEmRoleID +
-            "' WHERE id = '"
-            + response.updateEmID +
-            "'", (error, response) => {
-                if (error) throw error;
-                console.table(response)
+        inquirer.prompt([
+            {
+                type: "list",
+                message: "Which employee ID would you like to update?",
+                name: "updateEmID",
+                choices: allIds
+            },
+            {
+                type: "input",
+                message: "What is the updated Role ID for the employee?",
+                name: "newRoleEmRoleID",
             }
-        )
-        addViewUpdate();
+        ]).then((response) => {
+            const empID = response.updateEmID
+            const newRoleID = response.newRoleEmRoleID
+            connection.query(
+                "UPDATE employeedb.employee SET role_id = "
+                + response.newRoleEmRoleID +
+                " WHERE id = "
+                + response.updateEmID, (error, response) => {
+                    if (error) throw error;
+                    console.log("\n");
+                    connection.query("select * from employee", (error, response) => {
+                        if (error) throw error
+                        console.table(response)
+                        console.log("=========");
+                        console.log("Updated the Role ID of Employee ID " + empID + " to " + newRoleID);
+                        console.log("=========");
+                        addViewUpdate();
+                    })
+                }
+            )
+        })
     })
 }
 
 function updateManagerID() {
-    inquirer.prompt([
-        {
-            type: "input",
-            message: "Which employee ID would you like to update?",
-            name: "updateEmID",
-        },
-        {
-            type: "input",
-            message: "What is the updated Manager ID for the employee?",
-            name: "newRoleEmMgID",
+    connection.query("SELECT * FROM employee", (error, response) => {
+        if (error) throw error
+        const allIds = []
+        for (let i = 0; i < response.length; i++) {
+            allIds.push(response[i].id)
         }
-    ]).then((response) => {
-        connection.query(
-            "UPDATE employeedb.employee SET last_name = '"
-            + response.newRoleEmMgID +
-            "' WHERE id = '"
-            + response.updateEmID +
-            "'", (error, response) => {
-                if (error) throw error;
-                console.table(response)
+        inquirer.prompt([
+            {
+                type: "list",
+                message: "Which employee ID would you like to update?",
+                name: "updateEmID",
+                choices: allIds
+            },
+            {
+                type: "input",
+                message: "What is the updated Manager ID for the employee?",
+                name: "newRoleEmMgID",
             }
-
-        )
-        addViewUpdate();
+        ]).then((response) => {
+            const empID = response.updateEmID
+            const newManagerID = response.newRoleEmMgID
+            connection.query(
+                "UPDATE employeedb.employee SET manager_id = "
+                + response.newRoleEmMgID +
+                " WHERE id = "
+                + response.updateEmID, (error, response) => {
+                    if (error) throw error;
+                    console.log("\n");
+                    connection.query("select * from employee", (error, response) => {
+                        if (error) throw error
+                        console.table(response)
+                        console.log("=========");
+                        console.log("Updated the Manager ID of Employee ID " + empID + " to " + newManagerID);
+                        console.log("=========");
+                        addViewUpdate();
+                    })
+                }
+            )
+        })
     })
 }
 
@@ -554,54 +626,92 @@ function deleteType() {
 }
 
 function deleteEmployee() {
-    inquirer.prompt([
-        {
-            type: "input",
-            message: "Which employee ID would you like to delete?",
-            name: "deleteEmID",
-        }
-    ]).then((response) => {
-        connection.query(
-            "DELETE FROM employeeDB.employee WHERE id = " + response.deleteEmID, (error, response) => {
-                console.table(response)
-            }
-        )
-        addViewUpdate();
-    })
+    connection.query("SELECT * FROM employee", (error, response) => {
 
+        if (error) throw error
+        const allEmpIDs = []
+        for (let i = 0; i < response.length; i++) {
+            allEmpIDs.push(response[i].id)
+        }
+        inquirer.prompt([
+            {
+                type: "list",
+                message: "Which employee ID would you like to delete?",
+                name: "deleteEmID",
+                choices: allEmpIDs
+            }
+        ]).then((response) => {
+            connection.query("DELETE FROM employeeDB.employee WHERE id = " + response.deleteEmID, (error, response) => {
+                if (error) throw error
+                connection.query("select * from employee", (error, response) => {
+                    console.log("\n");
+                    console.table(response)
+                    console.log("Record Deleted");
+                    console.log("\n");
+                    addViewUpdate();
+
+                })
+            })
+        })
+    })
 }
 
 function deleteRole() {
-    inquirer.prompt([
-        {
-            type: "input",
-            message: "Which Role ID would you like to delete?",
-            name: "roleID",
+    connection.query("SELECT * FROM role", (error, response) => {
+        if (error) throw error
+        const allRoleTitles = []
+        for (let i = 0; i < response.length; i++) {
+            allRoleTitles.push(response[i].title)
         }
-    ]).then((response) => {
-        connection.query(
-            "DELETE FROM employeedb.role WHERE id = " + response.roleID, (error, response) => {
-                console.table(response)
+        inquirer.prompt([
+            {
+                type: "list",
+                message: "Which Role ID would you like to delete?",
+                name: "roleTitle",
+                choices: allRoleTitles
             }
-        )
-        addViewUpdate();
+        ]).then((response) => {
+            connection.query(
+                "DELETE FROM employeeDB.role WHERE title = '" + response.roleTitle + "'", (error, response) => {
+                    if (error) throw error
+                    connection.query("SELECT * FROM role", (error, response) => {
+                        console.table(response)
+                        console.log("Record Deleted");
+                        addViewUpdate();
+                    })
+                })
+        })
     })
 }
 
 function deleteDepartment() {
-    inquirer.prompt([
-        {
-            type: "input",
-            message: "Which Department ID would you like to delete?",
-            name: "deptID",
+    connection.query("SELECT * FROM department", (error, response) => {
+
+        if (error) throw error
+        const allDeptNames = []
+        for (let i = 0; i < response.length; i++) {
+            allDeptNames.push(response[i].name)
         }
-    ]).then((response) => {
-        connection.query(
-            "DELETE FROM employeeDB.department WHERE id = " + response.deptID, (error, response) => {
-                console.table(response)
+        inquirer.prompt([
+            {
+                type: "list",
+                message: "Which Department ID would you like to delete?",
+                name: "deptID",
+                choices: allDeptNames
             }
-        )
-        addViewUpdate();
+        ]).then((response) => {
+            connection.query(
+                "DELETE FROM employeeDB.department WHERE name = '" + response.deptID + "'", (error, response) => {
+                    if (error) throw error
+                    connection.query("select * from department", (error, response) => {
+                        console.log("\n");
+                        console.table(response)
+                        console.log("Record Deleted");
+                        console.log("\n");
+                        addViewUpdate();
+
+                    })
+                })
+        })
     })
 }
-
