@@ -1,6 +1,6 @@
 # MySQL - Employee Tracker
 
-![Employee Tracker]([./Assets/Hnet-image.gif])
+![Employee Tracker](./Assets/Hnet-image.gif)
 
 ## Table of Contents
 
